@@ -1,0 +1,72 @@
+---
+- name: Add repositories
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Install packages to allow apt to use a repository over HTTPS
+      apt:
+        name: apt-transport-https
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Add VSCode GPG key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+    
+    - name: Add VSCode repository
+      apt_repository:
+        repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+        state: present
+    
+- name: Install and update repositories
+  hosts: localhost
+  become: true
+  tasks:
+    - name: update apt
+      apt:
+        update_cache: yes
+
+    - name: install git
+      apt:
+        name: git
+        state: present
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+    
+    - name: Install Mysql
+      apt:
+        name: mysql-server
+        state: present
+    
+    - name: Install python3
+      apt:
+        name: python3
+        state: latest
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+    
+    - name: Install VSCode
+      apt:
+        name: code
+        state: present
