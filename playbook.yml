@@ -1,0 +1,86 @@
+---
+- name: Update Python
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Check current Python version
+      command: python3 --version
+      register: current_version
+      changed_when: false
+
+    - name: Download and install latest version
+      apt:
+        name: python3
+        update_cache: yes
+        state: latest
+      when: "current_version.stdout.find('Python 3.') == -1"
+    
+    - name: Check updated version
+      command: python3 --version
+      register: updated_version
+    
+    - name: Print update information
+      debug:
+        msg: "The previus version was: {{current_version.stdout}}, the actual version is: {{updated_version.stdout}}"
+- name: Update Apache2
+  hosts: localhost
+  become: true
+  gather_facts: yes
+  tasks:
+  - name: Check current Apache2 version
+    command: apache2 -v
+    register: apache_version
+
+  - name: Print actual Apache version
+    debug:
+      var: apache_version.stdout
+  
+  - name: Download and install latest Apache2
+    apt:
+      name: apache2
+      state: latest
+    when: "'2.4' not in apache_version.stdout"
+  
+  - name: Restart Apache2 service
+    service:
+      name: apache2
+      state: restarted
+  
+  - name: Verify Apache2 version
+    command: apache2 -v
+    register: updated_apache_version
+  
+  - name: Print updated Apache version
+    debug:
+      var: updated_apache_version.stdout
+- name: Execute an Node.js app
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Install nodejs
+      apt:
+        name: nodejs
+        state: present
+    
+    - name: Clone a repository
+      git:
+        repo: https://github.com/LuisRCbmo/websap.git
+        dest: ./websap
+    
+    - name: Install app dependencies
+      npm:
+        path: ./websap
+    
+    #- name: Start app
+    #  become: true
+    #  shell: cd ./websap ; npm start
+    
+    #- name: Verify the app is running
+    #  uri:
+    #    url: http://localhost:3000
+    #    return_content: yes
+    #  register: response
+    
+    #- name: Check a correct answer
+    #  debug:
+    #    var: response.content
